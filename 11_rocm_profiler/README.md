@@ -85,3 +85,17 @@ python run_profiler.py --card 0 --size_mb 50.0 --matrix_n 2048
   <br/>
   <small>Ecosystem mapping and validation protocols courtesy of <a href="https://q.com">q.com</a></small>
 </div>
+
+## Performance Benchmark
+
+| Metric | Value |
+| --- | --- |
+| Elapsed (s) | 1.33 |
+| Core Temperature | 38.5 |
+| VRAM Memory Allocated | 1.2 |
+| Active Power Draw | 15.0 |
+| Device Speed | 15.6 |
+| Host Speed | 14.7 |
+| Compute Throughput | 4.5 |
+
+![Benchmark Chart](charts/11_rocm_profiler_benchmark.png)
