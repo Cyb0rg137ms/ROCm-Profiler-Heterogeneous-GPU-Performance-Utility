@@ -5,10 +5,13 @@ Timeline writing utilities. Generates Chrome Trace Event Format JSON
 and premium, interactive HTML diagnostic reports.
 """
 
+import html
 import json
 from typing import List
-from profiler.records import ProfileRecord, EventType
+
 from profiler.analyser import BottleneckAnalyser
+from profiler.records import EventType, ProfileRecord
+
 
 class TimelineWriter:
     """Writes profile recordings to file formats including Chrome tracing json and HTML reports."""
@@ -45,7 +48,7 @@ class TimelineWriter:
         with open(file_path, "w") as f:
             json.dump({"traceEvents": events}, f, indent=2)
 
-    def generate_html_report(self, file_path: str):
+    def generate_html_report(self, file_path: str, peak_gflops: float = 15000.0, peak_bandwidth_gbps: float = 800.0):
         """
         Generates a premium glassmorphic/vibrant dark mode HTML report.
         Summarizes kernel timings, bottleneck findings, and roofline analysis.
@@ -53,7 +56,7 @@ class TimelineWriter:
         analyser = BottleneckAnalyser(self.records)
         top_k = analyser.top_kernels(n=5)
         hotspots = analyser.find_hotspots()
-        roofline = analyser.roofline_model(peak_gflops=15000.0, peak_bandwidth_gbps=800.0)
+        roofline = analyser.roofline_model(peak_gflops=peak_gflops, peak_bandwidth_gbps=peak_bandwidth_gbps)
 
         # Basic counts & stats
         num_kernels = sum(1 for r in self.records if r.event_type == EventType.KERNEL)
@@ -67,7 +70,7 @@ class TimelineWriter:
             pct = (duration_ms / total_time_ms * 100) if total_time_ms > 0 else 0.0
             top_kernels_html += f"""
             <div class="kernel-item">
-                <span class="kernel-name">{name}</span>
+                <span class="kernel-name">{html.escape(name)}</span>
                 <span class="kernel-duration">{duration_ms:.3f} ms ({pct:.1f}%)</span>
             </div>
             """
@@ -80,21 +83,24 @@ class TimelineWriter:
             sev_class = f"sev-{h['category'].lower().replace(' ', '-')}"
             hotspots_html += f"""
             <div class="hotspot-card {sev_class}">
-                <strong>{h['category']}</strong>
-                <p>{h['message']}</p>
+                <strong>{html.escape(h['category'])}</strong>
+                <p>{html.escape(h['message'])}</p>
             </div>
             """
 
         # Construct roofline list HTML
         roofline_html = ""
         for r in roofline:
+            def _fmt(v, spec):
+                return "n/a" if v is None else format(v, spec)
+
             roofline_html += f"""
             <tr>
-                <td>{r['kernel_name']}</td>
-                <td>{r['arithmetic_intensity']:.3f} FLOP/B</td>
-                <td>{r['achieved_gflops']:.1f} GFLOPS</td>
-                <td>{r['ceiling_gflops']:.1f} GFLOPS</td>
-                <td>{r['efficiency_pct']:.1f}%</td>
+                <td>{html.escape(r['kernel_name'])}</td>
+                <td>{_fmt(r['arithmetic_intensity'], '.3f')} FLOP/B</td>
+                <td>{_fmt(r['achieved_gflops'], '.1f')} GFLOPS</td>
+                <td>{_fmt(r['ceiling_gflops'], '.1f')} GFLOPS</td>
+                <td>{_fmt(r['efficiency_pct'], '.1f')}%</td>
                 <td><span class="bound-tag {r['bound_type'].lower().replace(' ', '-')}">{r['bound_type']}</span></td>
             </tr>
             """

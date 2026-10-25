@@ -1,0 +1,6 @@
+-r requirements.txt
+pytest==9.1.1
+pytest-timeout
+ruff==0.17.2
+mypy==2.4.0
+matplotlib==3.10.*

@@ -4,9 +4,11 @@ analyser.py
 Bottleneck analysis and roofline modeling for ROCm GPU kernel traces.
 """
 
-from typing import List, Dict, Tuple, Any
 from collections import defaultdict
-from profiler.records import ProfileRecord, EventType
+from typing import Any, Dict, List, Tuple
+
+from profiler.records import EventType, ProfileRecord
+
 
 class BottleneckAnalyser:
     """Analyzes profile records to identify bottlenecks, hotspots, and compute roofline models."""
@@ -21,7 +23,7 @@ class BottleneckAnalyser:
         if not self.records:
             return []
             
-        kernel_times = defaultdict(float)
+        kernel_times: Dict[str, float] = defaultdict(float)
         for r in self.records:
             if r.event_type == EventType.KERNEL:
                 kernel_times[r.name] += r.duration_ns
@@ -35,7 +37,7 @@ class BottleneckAnalyser:
         - Kernels that run abnormally slowly.
         - High ratio of memory copies relative to kernel execution.
         """
-        hotspots = []
+        hotspots: List[Dict[str, Any]] = []
         if not self.records:
             return hotspots
 
@@ -66,53 +68,38 @@ class BottleneckAnalyser:
         return hotspots
 
     def roofline_model(self, peak_gflops: float, peak_bandwidth_gbps: float) -> List[Dict[str, Any]]:
+        """Roofline placement of every kernel that carries ``flops`` and ``bytes_accessed`` metadata.
+
+        ``peak_bandwidth_gbps`` is in GB/s (bytes). v2: kernels without counters are
+        reported with ``bound_type="unknown"`` instead of v1's invented FLOP/byte
+        counts, and ``exceeds_ceiling`` flags metadata that implies a throughput above
+        the roofline (a sign of wrong counters or peaks).
         """
-        Performs Roofline analysis on kernels.
-        Estimates arithmetic intensity (FLOPs/byte) and categorizes performance limits.
-        """
-        roofline_results = []
+        if peak_gflops <= 0 or peak_bandwidth_gbps <= 0:
+            raise ValueError("peaks must be positive")
+        ridge = peak_gflops / peak_bandwidth_gbps
+        out: List[Dict[str, Any]] = []
         for r in self.records:
             if r.event_type != EventType.KERNEL:
                 continue
-                
-            # Retrieve or mock FLOP counts and memory footprints from metadata
-            flops = r.metadata.get("flops", 0.0)
-            bytes_accessed = r.metadata.get("bytes_accessed", 0.0)
-            
-            if bytes_accessed <= 0:
-                # Mock fallback estimation if metadata is absent
-                if "matmul" in r.name.lower() or "gemm" in r.name.lower():
-                    # Matmul: highly compute bound
-                    flops = 2.0 * (1024 ** 3)
-                    bytes_accessed = 3.0 * (1024 ** 2) * 4  # reading A, B, writing C
-                else:
-                    # Pointwise operations: memory bound
-                    bytes_accessed = 1024 * 1024 * 4
-                    flops = 1024 * 1024
-                    
-            intensity = flops / bytes_accessed if bytes_accessed > 0 else 0.0
-            
-            # GFLOPS achieved
-            achieved_gflops = (flops / r.duration_ns) if r.duration_ns > 0 else 0.0
-            
-            # Roofline ceiling: min(Peak GFLOPs, Arithmetic Intensity * Peak Bandwidth)
-            ceiling_gflops = min(peak_gflops, intensity * peak_bandwidth_gbps)
-            
-            # Efficiency
-            efficiency = (achieved_gflops / ceiling_gflops) if ceiling_gflops > 0 else 0.0
-            
-            # Bound classification
-            is_compute_bound = intensity >= (peak_gflops / peak_bandwidth_gbps)
-            bound_type = "Compute Bound" if is_compute_bound else "Memory Bound"
-            
-            roofline_results.append({
+            flops = float(r.metadata.get("flops", 0.0) or 0.0)
+            nbytes = float(r.metadata.get("bytes_accessed", 0.0) or 0.0)
+            if flops <= 0 or nbytes <= 0 or r.duration_ns <= 0:
+                out.append({"kernel_name": r.name, "duration_ms": r.duration_ms, "arithmetic_intensity": None,
+                            "achieved_gflops": None, "ceiling_gflops": None, "efficiency_pct": None,
+                            "bound_type": "unknown", "exceeds_ceiling": False})
+                continue
+            ai = flops / nbytes
+            achieved = flops / r.duration_ns
+            ceiling = min(peak_gflops, ai * peak_bandwidth_gbps)
+            out.append({
                 "kernel_name": r.name,
                 "duration_ms": r.duration_ms,
-                "arithmetic_intensity": intensity,
-                "achieved_gflops": achieved_gflops,
-                "ceiling_gflops": ceiling_gflops,
-                "efficiency_pct": efficiency * 100.0,
-                "bound_type": bound_type
+                "arithmetic_intensity": ai,
+                "achieved_gflops": achieved,
+                "ceiling_gflops": ceiling,
+                "efficiency_pct": 100.0 * achieved / ceiling,
+                "bound_type": "Compute Bound" if ai >= ridge else "Memory Bound",
+                "exceeds_ceiling": achieved > ceiling * 1.0001,
             })
-            
-        return roofline_results
+        return out

@@ -1,0 +1,229 @@
+{
+  "host": {
+    "machine": "x86_64",
+    "python": "3.13.5",
+    "torch": "2.14.1+cpu",
+    "threads": 8,
+    "device": "cpu",
+    "backend": "cpu"
+  },
+  "gemm": [
+    {
+      "flops_tflops": 0.08599107128204239,
+      "matrix_size": 64,
+      "dtype": "float32",
+      "execution_time_ms": 0.006097005098126829,
+      "iqr_ms": 0.0007319904398173094,
+      "engine": "cpu_gemm"
+    },
+    {
+      "flops_tflops": 0.33942719883334105,
+      "matrix_size": 128,
+      "dtype": "float32",
+      "execution_time_ms": 0.012357006198726594,
+      "iqr_ms": 0.0020590086933225393,
+      "engine": "cpu_gemm"
+    },
+    {
+      "flops_tflops": 0.5730510982687246,
+      "matrix_size": 256,
+      "dtype": "float32",
+      "execution_time_ms": 0.05855399649590254,
+      "iqr_ms": 0.0004609901225194335,
+      "engine": "cpu_gemm"
+    },
+    {
+      "flops_tflops": 0.6962637957207416,
+      "matrix_size": 512,
+      "dtype": "float32",
+      "execution_time_ms": 0.38553700142074376,
+      "iqr_ms": 0.03072599065490067,
+      "engine": "cpu_gemm"
+    },
+    {
+      "flops_tflops": 0.6383481600779812,
+      "matrix_size": 1024,
+      "dtype": "float32",
+      "execution_time_ms": 3.3641260088188574,
+      "iqr_ms": 0.12344699644017965,
+      "engine": "cpu_gemm"
+    },
+    {
+      "flops_tflops": 0.6873572311199354,
+      "matrix_size": 2048,
+      "dtype": "float32",
+      "execution_time_ms": 24.994090999825858,
+      "iqr_ms": 0.7162550173234195,
+      "engine": "cpu_gemm"
+    }
+  ],
+  "triad": [
+    {
+      "bandwidth_gbs": 125.98281715667476,
+      "size_mb": 4,
+      "engine": "cpu_triad"
+    },
+    {
+      "bandwidth_gbs": 121.611334857389,
+      "size_mb": 16,
+      "engine": "cpu_triad"
+    },
+    {
+      "bandwidth_gbs": 119.96493358008833,
+      "size_mb": 64,
+      "engine": "cpu_triad"
+    },
+    {
+      "bandwidth_gbs": 59.225139223739774,
+      "size_mb": 256,
+      "engine": "cpu_triad"
+    }
+  ],
+  "copy": {
+    "h2d_latency_ms": 3.1653209880460054,
+    "h2d_bandwidth_gbs": 42.402564702562564,
+    "d2h_latency_ms": 3.1653209880460054,
+    "d2h_bandwidth_gbs": 42.402564702562564,
+    "size_processed_mb": 128,
+    "repeats": 15,
+    "engine": "cpu_memcpy"
+  },
+  "empirical_roofline": {
+    "peak_gflops": 696.2637957207415,
+    "peak_bw_gbs": 125.98281715667476,
+    "ridge_flop_per_byte": 5.526656820627006
+  },
+  "roofline": [
+    {
+      "kernel_name": "gemm64",
+      "duration_ms": 0.006097,
+      "arithmetic_intensity": 10.666666666666666,
+      "achieved_gflops": 85.99114318517303,
+      "ceiling_gflops": 696.2637957207415,
+      "efficiency_pct": 12.350368310642777,
+      "bound_type": "Compute Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "gemm128",
+      "duration_ms": 0.012357,
+      "arithmetic_intensity": 21.333333333333332,
+      "achieved_gflops": 339.42736910253296,
+      "ceiling_gflops": 696.2637957207415,
+      "efficiency_pct": 48.749823154480225,
+      "bound_type": "Compute Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "gemm256",
+      "duration_ms": 0.058553,
+      "arithmetic_intensity": 42.666666666666664,
+      "achieved_gflops": 573.0608508530732,
+      "ceiling_gflops": 696.2637957207415,
+      "efficiency_pct": 82.30513411369695,
+      "bound_type": "Compute Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "gemm512",
+      "duration_ms": 0.385537,
+      "arithmetic_intensity": 85.33333333333333,
+      "achieved_gflops": 696.2637982865458,
+      "ceiling_gflops": 696.2637957207415,
+      "efficiency_pct": 100.00000036851037,
+      "bound_type": "Compute Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "gemm1024",
+      "duration_ms": 3.364126,
+      "arithmetic_intensity": 170.66666666666666,
+      "achieved_gflops": 638.3481617513731,
+      "ceiling_gflops": 696.2637957207415,
+      "efficiency_pct": 91.68194090726537,
+      "bound_type": "Compute Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "gemm2048",
+      "duration_ms": 24.99409,
+      "arithmetic_intensity": 341.3333333333333,
+      "achieved_gflops": 687.3572586159368,
+      "ceiling_gflops": 696.2637957207415,
+      "efficiency_pct": 98.7208099631857,
+      "bound_type": "Compute Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "triad4MB",
+      "duration_ms": 0.099878,
+      "arithmetic_intensity": 0.16666666666666666,
+      "achieved_gflops": 20.997136506537977,
+      "ceiling_gflops": 20.997136192779124,
+      "efficiency_pct": 100.00000149429356,
+      "bound_type": "Memory Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "triad16MB",
+      "duration_ms": 0.413873,
+      "arithmetic_intensity": 0.16666666666666666,
+      "achieved_gflops": 20.268555813015105,
+      "ceiling_gflops": 20.997136192779124,
+      "efficiency_pct": 96.53009642327045,
+      "bound_type": "Memory Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "triad64MB",
+      "duration_ms": 1.678212,
+      "arithmetic_intensity": 0.16666666666666666,
+      "achieved_gflops": 19.994155684740665,
+      "ceiling_gflops": 20.997136192779124,
+      "efficiency_pct": 95.22325092893676,
+      "bound_type": "Memory Bound",
+      "exceeds_ceiling": false
+    },
+    {
+      "kernel_name": "triad256MB",
+      "duration_ms": 13.597373,
+      "arithmetic_intensity": 0.16666666666666666,
+      "achieved_gflops": 9.87085726044288,
+      "ceiling_gflops": 20.997136192779124,
+      "efficiency_pct": 47.01049309685123,
+      "bound_type": "Memory Bound",
+      "exceeds_ceiling": false
+    }
+  ],
+  "overhead": {
+    "tracer_ns_per_block": 1245.563400152605,
+    "alloc_free_us_nostacks": 1.0007864984800108,
+    "alloc_free_us_stacks": 61.248539001098834
+  },
+  "timeline": {
+    "events": 200000,
+    "seconds": 0.38164620799943805,
+    "events_per_s": 524045.55792231136,
+    "utilisation": 0.9743820197043301,
+    "max_concurrency": 10,
+    "copy_overlap": 0.9254815619273208
+  },
+  "torch_profiler": {
+    "events": 111,
+    "top3": [
+      [
+        "PyTorch Profiler (0)",
+        1258.6
+      ],
+      [
+        "aten::linear",
+        687.5
+      ],
+      [
+        "aten::addmm",
+        527.1
+      ]
+    ]
+  },
+  "total_s": 3.6491964739980176
+}
