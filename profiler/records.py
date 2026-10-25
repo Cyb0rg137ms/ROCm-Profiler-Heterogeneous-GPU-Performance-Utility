@@ -4,9 +4,10 @@ records.py
 Core data structures for the ROCm GPU profiler.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import List, Optional
+from typing import List
 
 
 class EventType(Enum):
